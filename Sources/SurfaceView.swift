@@ -110,15 +110,19 @@ public class SurfaceView: UIView {
     }
 
     /// The appearance settings for a surface view.
-    public var appearance = SurfaceAppearance() { didSet {
-        shadowLayers = appearance.shadows.map { _ in CAShapeLayer() }
-        setNeedsLayout()
-    }}
+    public var appearance = SurfaceAppearance() {
+        didSet {
+            shadowLayers = appearance.shadows.map { _ in CAShapeLayer() }
+            setNeedsLayout()
+        }
+    }
 
     /// The margins to use when laying out the container view wrapping content.
-    public var containerMargins: UIEdgeInsets = .zero { didSet {
-        setNeedsUpdateConstraints()
-    } }
+    public var containerMargins: UIEdgeInsets = .zero {
+        didSet {
+            setNeedsUpdateConstraints()
+        }
+    }
 
     /// The view that displays an actual surface shape.
     ///
@@ -230,8 +234,8 @@ public class SurfaceView: UIView {
         addSubViews()
     }
 
-    required public init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
         addSubViews()
     }
 

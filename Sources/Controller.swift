@@ -188,8 +188,8 @@ open class FloatingPanelController: UIViewController {
     /// Returns the backdrop view managed by the controller object.
     @objc
     public var backdropView: BackdropView {
-        set { floatingPanel.backdropView = newValue }
         get { return floatingPanel.backdropView }
+        set { floatingPanel.backdropView = newValue }
     }
 
     /// Returns the scroll view that the controller tracks.
@@ -260,15 +260,15 @@ open class FloatingPanelController: UIViewController {
     /// A Boolean value that determines whether the removal interaction is enabled.
     @objc
     public var isRemovalInteractionEnabled: Bool {
-        @objc(setRemovalInteractionEnabled:) set { floatingPanel.isRemovalInteractionEnabled = newValue }
         @objc(isRemovalInteractionEnabled) get { return floatingPanel.isRemovalInteractionEnabled }
+        @objc(setRemovalInteractionEnabled:) set { floatingPanel.isRemovalInteractionEnabled = newValue }
     }
 
     /// The view controller responsible for the content portion of a panel.
     @objc
     public var contentViewController: UIViewController? {
-        set { set(contentViewController: newValue) }
         get { return _contentViewController }
+        set { set(contentViewController: newValue) }
     }
 
     /// The NearbyState determines that finger's nearby state.
@@ -293,21 +293,13 @@ open class FloatingPanelController: UIViewController {
     private var safeAreaInsetsObservation: NSKeyValueObservation?
     private let modalTransition = ModalTransition()
 
-    required public init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
+    public required init?(coder: NSCoder) {
+        super.init(coder: coder)
         setUp()
     }
 
-    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        super.init(nibName: nil, bundle: nil)
-        setUp()
-    }
-
-    /// Initialize a newly created panel controller.
-    @objc
-    public init(delegate: FloatingPanelControllerDelegate? = nil) {
-        super.init(nibName: nil, bundle: nil)
-        self.delegate = delegate
+    public override init(nibName: String?, bundle: Bundle?) {
+        super.init(nibName: nibName, bundle: bundle)
         setUp()
     }
 
@@ -317,12 +309,7 @@ open class FloatingPanelController: UIViewController {
         modalPresentationStyle = .custom
         transitioningDelegate = modalTransition
 
-        let initialLayout: FloatingPanelLayout
-        if let layout = delegate?.floatingPanel?(self, layoutFor: traitCollection) {
-            initialLayout = layout
-        } else {
-            initialLayout = FloatingPanelBottomLayout()
-        }
+        let initialLayout = FloatingPanelBottomLayout()
         let initialBehavior = FloatingPanelDefaultBehavior()
 
         floatingPanel = Core(self, layout: initialLayout, behavior: initialBehavior)
@@ -340,7 +327,7 @@ open class FloatingPanelController: UIViewController {
     open override func loadView() {
         assert(self.storyboard == nil, "Storyboard isn't supported")
 
-        let view = PassthroughView()
+        let view = PassthroughView(frame: UIScreen.main.bounds)
         view.backgroundColor = .clear
 
         backdropView.frame = view.bounds
@@ -556,22 +543,21 @@ open class FloatingPanelController: UIViewController {
         assert((parent is UITableViewController) == false, "UITableViewController should not be the parent because the view is a table view so that a panel doesn't work well")
         assert((parent is UICollectionViewController) == false, "UICollectionViewController should not be the parent because the view is a collection view so that a panel doesn't work well")
 
-        if viewIndex < 0 {
-            parent.view.addSubview(self.view)
-        } else {
-            parent.view.insertSubview(self.view, at: viewIndex)
-        }
-
         parent.addChild(self)
 
         view.frame = parent.view.bounds // Needed for a correct safe area configuration
+        if viewIndex < 0 {
+            parent.view.addSubview(view)
+        } else {
+            parent.view.insertSubview(view, at: viewIndex)
+        }
         view.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            self.view.topAnchor.constraint(equalTo: parent.view.topAnchor, constant: 0.0),
-            self.view.leftAnchor.constraint(equalTo: parent.view.leftAnchor, constant: 0.0),
-            self.view.rightAnchor.constraint(equalTo: parent.view.rightAnchor, constant: 0.0),
-            self.view.bottomAnchor.constraint(equalTo: parent.view.bottomAnchor, constant: 0.0),
-            ])
+            view.topAnchor.constraint(equalTo: parent.view.topAnchor),
+            view.leadingAnchor.constraint(equalTo: parent.view.leadingAnchor),
+            parent.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            parent.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
 
         show(animated: animated) { [weak self] in
             guard let self = self else { return }
